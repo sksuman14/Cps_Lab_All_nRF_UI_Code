@@ -59,15 +59,24 @@ void fan_cleaning()
 {
     // 1. Stop measurement mode (Cmd: 0x0104)
     send_command(0x0104);
-    k_msleep(1400); // Wait for sensor to process stop command
+    k_msleep(10); // Wait for sensor to process stop command
 
     // 2. Start fan cleaning (Cmd: 0x5607)
     send_command(0x5607);
-    k_sleep(K_SECONDS(10)); // Cleaning takes 10 seconds
+    k_msleep(10);
 
     // 3. Restart measurement mode
     send_command(CMD_START_MEAS);
-    k_msleep(2000); // Warm-up delay
+    k_msleep(10); // Warm-up delay
+
+    /* ---countdown --- */
+    for (int i = 0; i <= 100; i++)
+    {
+        printk("\rWaiting for Fan cleaning: %3d%%", i);
+        k_msleep(80);
+    }
+    printk("\n");
+
     printk("Fan cleaning done, resumes taking reading \n");
 }
 
@@ -83,14 +92,15 @@ int main(void)
         printk("I2C bus %s is not ready!\n\r", dev_i2c.bus->name);
         return -1;
     }
-    printk("Sensor is working..\n");
-    printk("Waiting for Fan cleaning...\n");
+    printk("\n=== Sensor Status ===\n");
+    printk("Sensor is working\n");
+    printk("Fan cleaning will take 10 seconds...\n");
 
     // --- Initialization Sequence ---
     send_command(CMD_RESET);
-    k_msleep(1200);
+    k_msleep(10);
     send_command(CMD_START_MEAS);
-    k_msleep(2000);
+    k_msleep(10);
 
     // Perform initial fan cleaning on boot
     fan_cleaning();
